@@ -57,33 +57,47 @@ CREATE TABLE IF NOT EXISTS candidates (
   current_designation TEXT,
   qualification TEXT,
   applied_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  status TEXT DEFAULT 'applied' CHECK(status IN ('applied','shortlisted','rejected','interview','selected','joined')),
+  status TEXT DEFAULT 'applied' CHECK(status IN ('applied','shortlisted','interview_scheduled','interviewed','selected','rejected','on_hold','background_verification','verified','verification_failed','joined')),
   FOREIGN KEY(job_posting_id) REFERENCES job_postings(id)
 );
 
 CREATE TABLE IF NOT EXISTS interviews (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   candidate_id INTEGER NOT NULL,
-  interview_date DATETIME,
-  interviewer_id INTEGER,
+  interview_date DATE,
+  interview_time TIME,
+  panel TEXT, -- JSON array of interviewer IDs
   round_number INTEGER DEFAULT 1,
+  interview_type TEXT DEFAULT 'technical',
+  location TEXT DEFAULT 'virtual',
   feedback TEXT,
   rating INTEGER CHECK(rating >= 1 AND rating <= 5),
-  status TEXT DEFAULT 'scheduled' CHECK(status IN ('scheduled','completed','rejected')),
+  remarks TEXT,
+  outcome TEXT CHECK(outcome IN ('selected','rejected','hold','next_round')),
+  status TEXT DEFAULT 'scheduled' CHECK(status IN ('scheduled','completed','cancelled')),
+  scheduled_by INTEGER,
+  scheduled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completed_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(candidate_id) REFERENCES candidates(id),
-  FOREIGN KEY(interviewer_id) REFERENCES users(id)
+  FOREIGN KEY(scheduled_by) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS background_verifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   candidate_id INTEGER NOT NULL,
-  status TEXT DEFAULT 'pending' CHECK(status IN ('pending','in_progress','passed','failed')),
-  verification_date DATETIME,
-  verified_by INTEGER,
+  verification_type TEXT DEFAULT 'standard',
+  agency TEXT,
+  status TEXT DEFAULT 'initiated' CHECK(status IN ('initiated','in_progress','completed_passed','completed_failed')),
+  documents TEXT, -- JSON array of document paths
   remarks TEXT,
+  initiated_by INTEGER,
+  initiated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completed_at DATETIME,
+  verified_by INTEGER,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(candidate_id) REFERENCES candidates(id),
+  FOREIGN KEY(initiated_by) REFERENCES users(id),
   FOREIGN KEY(verified_by) REFERENCES users(id)
 );
 

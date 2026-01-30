@@ -42,23 +42,23 @@
           <h3>Main</h3>
           <ul>
             <li><a href="#dashboard" class="menu-link active">📊 Dashboard</a></li>
-            <li><a href="#employees" class="menu-link">👥 Employees</a></li>
+            <li data-roles="ADMIN,HR,MANAGER" class="menu-link"><a href="#employees">👥 Employees</a></li>
           </ul>
         </div>
         <div class="menu-section">
           <h3>HR Operations</h3>
           <ul>
-            <li><a href="#recruitment" class="menu-link">🔍 Recruitment</a></li>
-            <li><a href="#leave" class="menu-link">📋 Leave Management</a></li>
-            <li><a href="#attendance" class="menu-link">📍 Attendance</a></li>
-            <li><a href="#engagement" class="menu-link">💬 Engagement</a></li>
+            <li data-roles="ADMIN,HR" class="menu-link"><a href="#recruitment">🔍 Recruitment</a></li>
+            <li data-roles="ADMIN,HR,MANAGER" class="menu-link"><a href="#leave">📋 Leave Management</a></li>
+            <li data-roles="ADMIN,HR,MANAGER" class="menu-link"><a href="#attendance">📍 Attendance</a></li>
+            <li data-roles="ADMIN,HR" class="menu-link"><a href="#engagement">💬 Engagement</a></li>
           </ul>
         </div>
         <div class="menu-section">
           <h3>Exit & Reports</h3>
           <ul>
-            <li><a href="#exit" class="menu-link">🚪 Exit Management</a></li>
-            <li><a href="#analytics" class="menu-link">📈 Analytics</a></li>
+            <li data-roles="ADMIN,HR" class="menu-link"><a href="#exit">🚪 Exit Management</a></li>
+            <li data-roles="ADMIN,HR,MANAGER" class="menu-link"><a href="#analytics">📈 Analytics</a></li>
           </ul>
         </div>
       </div>
@@ -266,6 +266,73 @@
         </div>
       </section>
     </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+      <div class="login-container">
+        <div class="login-header">
+          <h2>Welcome to Smart HRMS</h2>
+          <p>Please select your role and login</p>
+        </div>
+
+        <div class="role-selector">
+          <div class="role-tabs">
+            <button class="role-tab active" data-role="ADMIN">
+              <div class="role-icon">👑</div>
+              <div class="role-info">
+                <h3>Admin</h3>
+                <p>Full system access</p>
+              </div>
+            </button>
+            <button class="role-tab" data-role="HR">
+              <div class="role-icon">👥</div>
+              <div class="role-info">
+                <h3>HR Manager</h3>
+                <p>HR operations & recruitment</p>
+              </div>
+            </button>
+            <button class="role-tab" data-role="MANAGER">
+              <div class="role-icon">👔</div>
+              <div class="role-info">
+                <h3>Manager</h3>
+                <p>Team management</p>
+              </div>
+            </button>
+            <button class="role-tab" data-role="EMPLOYEE">
+              <div class="role-icon">👤</div>
+              <div class="role-info">
+                <h3>Employee</h3>
+                <p>Self-service portal</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" required placeholder="Enter your email">
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" required placeholder="Enter your password">
+          </div>
+
+          <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        <div class="login-footer">
+          <p><strong>Demo Credentials:</strong></p>
+          <div class="demo-credentials">
+            <p><strong>Admin:</strong> admin@hrms.com / admin123</p>
+            <p><strong>HR:</strong> hr@hrms.com / hr123</p>
+            <p><strong>Manager:</strong> manager@hrms.com / manager123</p>
+            <p><strong>Employee:</strong> john@hrms.com / emp123</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Modals -->
     <div id="modal" class="modal">

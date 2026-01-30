@@ -4,12 +4,14 @@
 // API Configuration
 const API_BASE = 'http://localhost:3000/api';
 let currentUser = null;
+let selectedRole = localStorage.getItem('selectedRole') || 'ADMIN'; // Default role
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   checkAuth();
   setupPageNavigation();
+  initializeRoleSelection();
 });
 
 function setupEventListeners() {
@@ -31,6 +33,44 @@ function setupEventListeners() {
       e.target.classList.add('active');
     });
   });
+
+  // Role selection
+  document.querySelectorAll('.role-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      selectedRole = e.currentTarget.dataset.role;
+      localStorage.setItem('selectedRole', selectedRole);
+    });
+  });
+
+  // Login form
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      alert('Please enter both email and password');
+      return;
+    }
+
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Logging in...';
+    submitBtn.disabled = true;
+
+    try {
+      await login(email, password, selectedRole);
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
 }
 
 function setupPageNavigation() {
@@ -50,16 +90,14 @@ function setupPageNavigation() {
 function checkAuth() {
   const token = localStorage.getItem('token');
   if (!token) {
-    // Show login form (simplified for demo)
-    const username = prompt('Enter username (admin/hr/manager/employee):');
-    const password = prompt('Enter password:');
-    login(username, password);
+    showLoginModal();
   } else {
+    hideLoginModal();
     loadDashboard();
   }
 }
 
-async function login(email, password) {
+async function login(email, password, role) {
   try {
     const response = await fetch(`${API_BASE}/login`, {
       method: 'POST',
@@ -68,22 +106,50 @@ async function login(email, password) {
     });
     const data = await response.json();
     if (data.token) {
+      // Verify the user has the selected role
+      if (data.user.role !== role) {
+        alert(`Access denied. You don't have ${role} privileges.`);
+        return;
+      }
       localStorage.setItem('token', data.token);
       currentUser = data.user;
+      hideLoginModal();
+      updateUserDisplay();
       loadDashboard();
     } else {
-      alert('Login failed');
+      alert('Login failed: ' + (data.error || 'Invalid credentials'));
     }
   } catch (e) {
     console.error('Login error:', e);
-    alert('Login error');
+    alert('Login error: ' + e.message);
   }
 }
 
-function logout() {
-  localStorage.removeItem('token');
-  currentUser = null;
-  location.reload();
+function showLoginModal() {
+  document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('app').classList.remove('logged-in');
+}
+
+function hideLoginModal() {
+  document.getElementById('loginModal').style.display = 'none';
+  document.getElementById('app').classList.add('logged-in');
+}
+
+function updateUserDisplay() {
+  if (currentUser) {
+    const userBtn = document.getElementById('userBtn');
+    userBtn.innerHTML = `👤 ${currentUser.name} (${currentUser.role})`;
+    updateMenuVisibility();
+  }
+}
+
+function initializeRoleSelection() {
+  // Set the active role tab based on stored preference
+  const activeTab = document.querySelector(`.role-tab[data-role="${selectedRole}"]`);
+  if (activeTab) {
+    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+    activeTab.classList.add('active');
+  }
 }
 
 // ==================== PAGE NAVIGATION ====================
@@ -123,11 +189,48 @@ async function loadDashboard() {
     document.getElementById('pendingApprovals').textContent = stats.pendingApprovals;
     document.getElementById('separations').textContent = stats.separations;
 
+    // Update dashboard title based on role
+    updateDashboardTitle();
+
     // Load charts
     await loadHeadcountChart();
     await loadSalaryChart();
   } catch (e) {
     console.error('Dashboard load error:', e);
+  }
+}
+
+function updateDashboardTitle() {
+  const titleElement = document.querySelector('#dashboard h1');
+  const subtitleElement = document.querySelector('#dashboard .page-header p');
+
+  if (titleElement && subtitleElement && currentUser) {
+    const roleContent = {
+      'ADMIN': {
+        title: 'System Administration Dashboard',
+        subtitle: 'Manage system-wide operations, users, and oversee all HR activities.'
+      },
+      'HR': {
+        title: 'HR Management Dashboard',
+        subtitle: 'Oversee recruitment, employee management, and HR operations.'
+      },
+      'MANAGER': {
+        title: 'Team Management Dashboard',
+        subtitle: 'Manage your team, approve requests, and track performance.'
+      },
+      'EMPLOYEE': {
+        title: 'Employee Portal',
+        subtitle: 'Access your personal information, submit requests, and track your progress.'
+      }
+    };
+
+    const content = roleContent[currentUser.role] || {
+      title: 'Dashboard',
+      subtitle: 'Welcome back! Here\'s an overview of your HR metrics.'
+    };
+
+    titleElement.textContent = content.title;
+    subtitleElement.textContent = content.subtitle;
   }
 }
 

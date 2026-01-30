@@ -136,6 +136,23 @@ const emailTemplates = {
         This is an automated email. Please do not reply to this address.
       </p>
     `
+  }),
+
+  interviewCompleted: (candidateName, jobTitle, outcome, feedback, companyName) => ({
+    subject: `Interview Completed - ${jobTitle}`,
+    html: `
+      <h2>Interview Feedback</h2>
+      <p>Dear ${candidateName},</p>
+      <p>Thank you for attending the interview for the <strong>${jobTitle}</strong> position.</p>
+      <p><strong>Interview Outcome:</strong> <span style="color: ${outcome === 'selected' ? '#4CAF50' : outcome === 'rejected' ? '#F44336' : '#FF9800'};">${outcome.replace('_', ' ').toUpperCase()}</span></p>
+      ${feedback ? `<p><strong>Feedback:</strong> ${feedback}</p>` : ''}
+      <p>Application Status: <strong style="color: ${outcome === 'selected' ? '#4CAF50' : outcome === 'rejected' ? '#F44336' : '#FF9800'};">${outcome.replace('_', ' ').toUpperCase()}</strong></p>
+      <p>Best regards,<br>${companyName} Recruitment Team</p>
+      <hr>
+      <p style="font-size: 12px; color: #999;">
+        This is an automated email. Please do not reply to this address.
+      </p>
+    `
   })
 };
 
@@ -242,6 +259,42 @@ async function sendInterviewScheduled(candidate, posting, interview) {
   } catch (error) {
     console.error('Error sending interview scheduled:', error);
     logEmailError(candidate.id, 'interviewScheduled', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Send interview completed notification
+ * @param {object} candidate - Candidate object
+ * @param {object} posting - Job posting object
+ * @param {object} interview - Interview details with outcome and feedback
+ * @returns {Promise<object>} Send result
+ */
+async function sendInterviewCompleted(candidate, posting, interview) {
+  try {
+    const template = emailTemplates.interviewCompleted(
+      candidate.name,
+      posting.title,
+      interview.outcome,
+      interview.remarks,
+      process.env.COMPANY_NAME || 'HRMS Company'
+    );
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER || 'noreply@hrms.com',
+      to: candidate.email,
+      subject: template.subject,
+      html: template.html
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+
+    logEmailSent(candidate.id, 'interviewCompleted', result.messageId, candidate.email);
+
+    return { success: true, messageId: result.messageId };
+  } catch (error) {
+    console.error('Error sending interview completed:', error);
+    logEmailError(candidate.id, 'interviewCompleted', error.message);
     throw error;
   }
 }
@@ -484,6 +537,7 @@ module.exports = {
   sendApplicationConfirmation,
   sendShortlistedNotification,
   sendInterviewScheduled,
+  sendInterviewCompleted,
   sendSelectedNotification,
   sendRejectionNotification,
   sendJobPostingNotification,

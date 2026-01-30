@@ -7,6 +7,7 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const { db, write, nextId } = require('./db');
+const interviewRoutes = require('./interviewRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -457,6 +458,9 @@ app.get('/api/dashboard/salary-distribution', authMiddleware, (req, res) => {
   }, {});
   res.json(distribution);
 });
+
+// ==================== Interview Management ====================
+app.use('/api/interviews', authMiddleware, interviewRoutes);
 
 // ==================== File Uploads ====================
 app.post('/api/upload', authMiddleware, upload.single('file'), (req, res) => {

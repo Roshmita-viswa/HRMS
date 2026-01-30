@@ -51,11 +51,21 @@ let db = {
 function read() {
   if (fs.existsSync(file)) {
     try {
-      db.data = JSON.parse(fs.readFileSync(file, 'utf-8'));
+      const loadedData = JSON.parse(fs.readFileSync(file, 'utf-8'));
+      // Check if this is HRMS data (has users, employees, etc.)
+      if (loadedData.users && Array.isArray(loadedData.users) && loadedData._id) {
+        db.data = { ...createDefaultSchema(), ...loadedData };
+      } else {
+        // Different system data, use default HRMS schema
+        console.log('Existing db.json is from different system, using default HRMS schema');
+        db.data = createDefaultSchema();
+      }
     } catch (e) {
       console.error('Error reading db.json:', e);
       db.data = createDefaultSchema();
     }
+  } else {
+    db.data = createDefaultSchema();
   }
 }
 
