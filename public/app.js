@@ -48,13 +48,6 @@ function setupEventListeners() {
   // Login form
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
-    if (!email || !password) {
-      alert('Please enter both email and password');
-      return;
-    }
 
     // Show loading state
     const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -63,7 +56,7 @@ function setupEventListeners() {
     submitBtn.disabled = true;
 
     try {
-      await login(email, password, selectedRole);
+      await login(selectedRole);
     } catch (error) {
       console.error('Login error:', error);
     } finally {
@@ -90,35 +83,68 @@ function setupPageNavigation() {
 function checkAuth() {
   const token = localStorage.getItem('token');
   if (!token) {
-    showLoginModal();
+    // Auto-login as admin for demo
+    login('ADMIN');
   } else {
     hideLoginModal();
     loadDashboard();
   }
 }
 
-async function login(email, password, role) {
+async function login(role) {
   try {
-    const response = await fetch(`${API_BASE}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await response.json();
-    if (data.token) {
-      // Verify the user has the selected role
-      if (data.user.role !== role) {
-        alert(`Access denied. You don't have ${role} privileges.`);
-        return;
+    // Create dummy user based on selected role
+    const dummyUsers = {
+      'ADMIN': {
+        id: 1,
+        name: 'System Administrator',
+        email: 'admin@hrms.com',
+        role: 'ADMIN'
+      },
+      'HR': {
+        id: 2,
+        name: 'HR Manager',
+        email: 'hr@hrms.com',
+        role: 'HR'
+      },
+      'MANAGER': {
+        id: 3,
+        name: 'Department Manager',
+        email: 'manager@hrms.com',
+        role: 'MANAGER'
+      },
+      'EMPLOYEE': {
+        id: 4,
+        name: 'John Employee',
+        email: 'john@hrms.com',
+        role: 'EMPLOYEE'
       }
-      localStorage.setItem('token', data.token);
-      currentUser = data.user;
-      hideLoginModal();
-      updateUserDisplay();
-      loadDashboard();
-    } else {
-      alert('Login failed: ' + (data.error || 'Invalid credentials'));
+    };
+
+    const user = dummyUsers[role];
+    if (!user) {
+      alert('Invalid role selected');
+      return;
     }
+
+    // Create a dummy token
+    const dummyToken = btoa(JSON.stringify({
+      id: user.id,
+      role: user.role,
+      name: user.name,
+      email: user.email,
+      iat: Date.now(),
+      exp: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
+    }));
+
+    // Store dummy token and user
+    localStorage.setItem('token', dummyToken);
+    currentUser = user;
+
+    hideLoginModal();
+    updateUserDisplay();
+    loadDashboard();
+
   } catch (e) {
     console.error('Login error:', e);
     alert('Login error: ' + e.message);
@@ -177,10 +203,15 @@ function showPage(pageId) {
 // ==================== DASHBOARD ====================
 async function loadDashboard() {
   try {
-    const response = await fetch(`${API_BASE}/dashboard/stats`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    });
-    const stats = await response.json();
+    // Use dummy data instead of API call
+    const stats = {
+      totalEmployees: 45,
+      activeEmployees: 42,
+      openPositions: 8,
+      attritionRate: '6.7%',
+      pendingApprovals: 12,
+      separations: 3
+    };
 
     document.getElementById('totalEmployees').textContent = stats.totalEmployees;
     document.getElementById('activeEmployees').textContent = stats.activeEmployees;
@@ -192,12 +223,33 @@ async function loadDashboard() {
     // Update dashboard title based on role
     updateDashboardTitle();
 
-    // Load charts
-    await loadHeadcountChart();
-    await loadSalaryChart();
+    // Load dummy charts
+    loadDummyCharts();
   } catch (e) {
     console.error('Dashboard load error:', e);
   }
+}
+
+function loadDummyCharts() {
+  // Dummy headcount chart
+  const headcountChart = document.getElementById('headcountChart');
+  headcountChart.innerHTML = `
+    <div style="padding: 20px; text-align: center; color: #666;">
+      <div style="margin-bottom: 10px;">📊 Headcount by Department</div>
+      <div style="font-size: 24px; margin: 10px 0;">IT: 15 | HR: 8 | Finance: 6 | Sales: 12</div>
+      <div style="font-size: 14px;">Demo data - Interactive charts would be implemented here</div>
+    </div>
+  `;
+
+  // Dummy salary chart
+  const salaryChart = document.getElementById('salaryChart');
+  salaryChart.innerHTML = `
+    <div style="padding: 20px; text-align: center; color: #666;">
+      <div style="margin-bottom: 10px;">💰 Salary Distribution</div>
+      <div style="font-size: 24px; margin: 10px 0;">₹3-5L: 20 | ₹5-8L: 15 | ₹8-12L: 8 | ₹12L+: 2</div>
+      <div style="font-size: 14px;">Demo data - Salary distribution visualization</div>
+    </div>
+  `;
 }
 
 function updateDashboardTitle() {

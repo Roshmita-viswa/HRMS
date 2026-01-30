@@ -28,6 +28,7 @@
             <div id="userDropdown" class="dropdown-menu">
               <a href="#profile">Profile</a>
               <a href="#settings">Settings</a>
+              <a href="#" onclick="showLoginModal()">Switch Role</a>
               <a href="#logout" onclick="logout()">Logout</a>
             </div>
           </li>
@@ -272,7 +273,7 @@
       <div class="login-container">
         <div class="login-header">
           <h2>Welcome to Smart HRMS</h2>
-          <p>Please select your role and login</p>
+          <p>Select your role and click "Login as Selected Role" to access the demo</p>
         </div>
 
         <div class="role-selector">
@@ -310,25 +311,26 @@
 
         <form id="loginForm" class="login-form">
           <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" required placeholder="Enter your email">
+            <label for="email">Email (Optional)</label>
+            <input type="email" id="email" placeholder="Enter your email (optional)">
           </div>
 
           <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" required placeholder="Enter your password">
+            <label for="password">Password (Optional)</label>
+            <input type="password" id="password" placeholder="Enter your password (optional)">
           </div>
 
-          <button type="submit" class="login-btn">Login</button>
+          <button type="submit" class="login-btn">Login as Selected Role</button>
         </form>
 
         <div class="login-footer">
-          <p><strong>Demo Credentials:</strong></p>
+          <p><strong>Demo Mode:</strong> Just select a role and click "Login as Selected Role"</p>
           <div class="demo-credentials">
-            <p><strong>Admin:</strong> admin@hrms.com / admin123</p>
-            <p><strong>HR:</strong> hr@hrms.com / hr123</p>
-            <p><strong>Manager:</strong> manager@hrms.com / manager123</p>
-            <p><strong>Employee:</strong> john@hrms.com / emp123</p>
+            <p><strong>Available Roles:</strong></p>
+            <p>• Admin - Full system access</p>
+            <p>• HR Manager - HR operations & recruitment</p>
+            <p>• Manager - Team management</p>
+            <p>• Employee - Self-service portal</p>
           </div>
         </div>
       </div>

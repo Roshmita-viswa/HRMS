@@ -874,6 +874,11 @@ body {
   display: none;
 }
 
+/* Hide login modal by default for auto-login */
+.login-modal {
+  display: none;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .login-container {
